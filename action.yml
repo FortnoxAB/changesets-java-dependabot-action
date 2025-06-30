@@ -37,7 +37,7 @@ runs:
 
       run: |
         ${{ inputs.maven-executable }} se.fortnox.changesets:changesets-maven-plugin:add \
-          --quiet --batch-mode --no-transfer-progress \
+          --batch-mode --no-transfer-progress \
           -DchangesetLevel=patch \
           -DchangesetFilename=${{ inputs.filename }} \
           -DchangesetContent="- $DEPENDENCY_NAMES: $NEW_VERSION"
@@ -58,4 +58,4 @@ runs:
         # Use [dependabot skip] to not interrupt how Dependabot works,
         # see https://docs.github.com/en/code-security/dependabot/working-with-dependabot/managing-pull-requests-for-dependency-updates#allowing-dependabot-to-rebase-and-force-push-over-extra-commits
         commit_message: "Add changeset for Dependabot PR #${{ github.event.pull_request.number }} [dependabot skip]"
-        file_pattern: .changeset/${{ inputs.filename }}
+        file_pattern: .changeset/*.md
