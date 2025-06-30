@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  dependabot-test:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +21,34 @@ jobs:
         run: |
           mkdir -p .github/actions/dependabot-changesets-action
           cp action.yml .github/actions/dependabot-changesets-action/action.yml
+
+
+      # I'm sure this can be done in a more elegant way, but this will do for now
+      - name: Setup Maven Wrapper
+        shell: bash
+        run: |
+          cat >pom.xml <<EOL
+          <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+              <modelVersion>4.0.0</modelVersion>
+              <groupId>se.fortnox</groupId>
+              <artifactId>test-pom</artifactId>
+              <version>1-SNAPSHOT</version>
+          </project>
+          EOL
+
+          mkdir -p .mvn/wrapper
+          cat >.mvn/wrapper/maven-wrapper.properties <<EOL
+          wrapperVersion=3.3.2
+          distributionType=only-script
+          distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.10/apache-maven-3.9.10-bin.zip
+          EOL
+          
+          wget https://repo1.maven.org/maven2/org/apache/maven/wrapper/maven-wrapper-distribution/3.3.2/maven-wrapper-distribution-3.3.2-bin.zip
+          unzip maven-wrapper-distribution-3.3.2-bin.zip
+          ./mvnw -v
+          
+          
 
       - # noinspection UndefinedAction
         uses: ./.github/actions/dependabot-changesets-action
