@@ -51,9 +51,9 @@ runs:
         
 
     # TODO This could perhaps have been amended into the previous commit by dependabot, but not sure if it can be done or how to safely do that
-    # Stay at stefanzweifel/git-auto-commit-action@v5 until this is resolved: https://github.com/stefanzweifel/git-auto-commit-action/issues/383
+    # Stay at stefanzweifel/git-auto-commit-action@v6 until this is resolved: https://github.com/stefanzweifel/git-auto-commit-action/issues/383
     # or just replace it with something else.
-    - uses: stefanzweifel/git-auto-commit-action@v5
+    - uses: stefanzweifel/git-auto-commit-action@v6
       with:
         # Use [dependabot skip] to not interrupt how Dependabot works,
         # see https://docs.github.com/en/code-security/dependabot/working-with-dependabot/managing-pull-requests-for-dependency-updates#allowing-dependabot-to-rebase-and-force-push-over-extra-commits
