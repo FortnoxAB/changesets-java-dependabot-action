@@ -9,6 +9,7 @@ permissions:
 jobs:
   dependabot-test:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'FortnoxAB/changesets-java-dependabot-action'
     steps:
       - uses: actions/checkout@v4
 
