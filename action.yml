@@ -1,0 +1,61 @@
+name: 'Dependabot Changesets'
+description: |
+  Generate changesets for Dependabot PRs.
+
+inputs:
+  maven-executable:
+    description: 'Path to the Maven executable. Defaults to `./mvnw`.'
+    default: './mvnw'
+    required: false
+
+  filename:
+    description: 'Filename for the changeset. If not provided, the action will use a default filename based on the current commit SHA.'
+    required: false
+    default: 'dependabot-${GITHUB_SHA::7}.md'
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Dependabot metadata
+      id: dependabot-metadata
+      if: env.DEPENDENCY_NAMES == '' && env.NEW_VERSION == ''
+      uses: dependabot/fetch-metadata@v2
+      with:
+        skip-verification: true # TODO Check if still needed
+
+    # Generate a changeset file for the Dependabot PR with a consistent name, so that they are not duplicated or causes
+    # unnecessary creation/deletion when dependency PRs are updated.
+    # TODO Change to level dependency when #95 is merged
+    - name: Generate changeset
+      shell: bash
+      env:
+        # Use the environment variables if provided, otherwise use the outputs from dependabot/fetch-metadata
+        # This is intended for testing and should not be used in production.
+        DEPENDENCY_NAMES: ${{ steps.dependabot-metadata.outputs.dependency-names || env.DEPENDENCY_NAMES }}
+        NEW_VERSION: ${{ steps.dependabot-metadata.outputs.new-version || env.NEW_VERSION }}
+
+      run: |
+        ${{ inputs.maven-executable }} se.fortnox.changesets:changesets-maven-plugin:add \
+          --quiet --batch-mode --no-transfer-progress \
+          -DchangesetLevel=patch \
+          -DchangesetFilename=${{ inputs.filename }} \
+          -DchangesetContent="- $DEPENDENCY_NAMES: $NEW_VERSION"
+
+    - name: Debug
+      shell: bash
+      run: |
+        ls -l .changeset || true
+        cat .changeset/${{ inputs.filename }} || true
+        git status
+        
+
+    # TODO This could perhaps have been amended into the previous commit by dependabot, but not sure if it can be done or how to safely do that
+    # Stay at stefanzweifel/git-auto-commit-action@v5 until this is resolved: https://github.com/stefanzweifel/git-auto-commit-action/issues/383
+    # or just replace it with something else.
+    - uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        # Use [dependabot skip] to not interrupt how Dependabot works,
+        # see https://docs.github.com/en/code-security/dependabot/working-with-dependabot/managing-pull-requests-for-dependency-updates#allowing-dependabot-to-rebase-and-force-push-over-extra-commits
+        commit_message: "Add changeset for Dependabot PR #${{ github.event.pull_request.number }} [dependabot skip]"
+        file_pattern: .changeset/${{ inputs.filename }}

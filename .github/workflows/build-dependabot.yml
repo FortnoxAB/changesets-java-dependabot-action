@@ -1,0 +1,39 @@
+name: Test on Dependabot PR
+on:
+  pull_request: {}
+
+permissions:
+  pull-requests: read
+  contents: write
+
+jobs:
+  dependabot-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Copy the action so that it can be used in the workflow
+      - name: Copy action
+        shell: bash
+        run: |
+          mkdir -p .github/actions/dependabot-changesets-action
+          cp action.yml .github/actions/dependabot-changesets-action/action.yml
+
+      - uses: ./.github/actions/dependabot-changesets-action
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: changeset-folder
+          include-hidden-files: true
+          path: .changeset
+
+      - name: Validate
+        shell: bash
+        run: |
+          if [ ! -f .changeset/dependabot-${GITHUB_SHA::7}.md ]; then
+              echo "Changeset file not found"
+              exit 1
+          fi
+          
+          echo "Changeset file created successfully"
+          cat .changeset/dependabot-${GITHUB_SHA::7}.md || true

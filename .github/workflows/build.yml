@@ -1,0 +1,63 @@
+name: Test workflow
+on:
+  pull_request: {}
+  push:
+    branches:
+      - "main"
+
+permissions:
+  pull-requests: read
+  contents: write
+
+jobs:
+  dependabot-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Copy the action so that it can be used in the workflow
+      - name: Copy action
+        shell: bash
+        run: |
+          mkdir -p .github/actions/dependabot-changesets-action
+          cp action.yml .github/actions/dependabot-changesets-action/action.yml
+
+      - # noinspection UndefinedAction
+        uses: ./.github/actions/dependabot-changesets-action
+        # These are for testing without having a real Dependabot PR to extract the metadata from
+        env:
+          DEPENDENCY_NAMES: com.opencsv:opencsv
+          NEW_VERSION: 5.11.1
+
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: changeset-folder
+          include-hidden-files: true
+          path: .changeset
+
+
+      # The Maven plugin has its own tests for creating changesets, so this is just a simple validation
+      # to verify that the action is run with the correct parameters and that the changeset file is created correctly.
+      - name: Validate
+        shell: bash
+        run: |
+          FILE=.changeset/dependabot-${GITHUB_SHA::7}.md
+          
+          if [ ! -f $FILE ]; then
+              echo "Changeset file $FILE not found"
+              exit 1
+          fi
+          
+          if ! grep -q -- "\"test-pom\": patch" $FILE; then
+            echo "Does not contain module and level"
+            exit 1
+          fi;
+          
+          if ! grep -q -- "- com.opencsv:opencsv: 5.11.1" $FILE; then
+            echo "Does not contain dependency and version"
+            exit 1
+          fi;
+          
+          echo "Changeset file created successfully"
+          cat $FILE || true
