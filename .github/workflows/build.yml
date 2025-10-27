@@ -58,7 +58,7 @@ jobs:
           NEW_VERSION: 5.11.1
 
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: changeset-folder
           include-hidden-files: true
