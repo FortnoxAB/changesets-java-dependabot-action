@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'FortnoxAB/changesets-java-dependabot-action'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Copy the action so that it can be used in the workflow
       - name: Copy action
